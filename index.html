@@ -253,8 +253,8 @@
 
         <div class="card" style="margin-top: 16px;">
             <h3 style="margin-bottom: 12px;">Daily Bonus</h3>
-            <p style="color: var(--text-gray); font-size: 14px; margin-bottom: 15px;">Claim your 2 free coins every 24 hours.</p>
-            <button id="daily-btn" class="btn" onclick="claimDaily()">🎁 Claim Bonus</button>
+            <p style="color: var(--text-gray); font-size: 14px; margin-bottom: 15px;">Claim your 5 free coins every 24 hours.</p>
+            <button id="daily-btn" class="btn" onclick="triggerGigaPubAd('daily')">🎁 Claim Bonus</button>
         </div>
     </div>
 
@@ -263,9 +263,9 @@
             <h2 style="margin-bottom: 10px;">GigaPub Ad Engine</h2>
             <p style="color: var(--text-gray); font-size: 14px; margin-bottom: 20px;">Watch a short video ad to earn between 1-3 coins instantly.</p>
             <div style="background: #000; height: 180px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; border: 1px dashed #444;">
-                <span style="color: #444;">Ad Placement Holder</span>
+                <span style="color: #444;">GigaPub Ad Ready</span>
             </div>
-            <button id="watch-btn" class="btn" onclick="startAd()">🎥 Watch Video Ad</button>
+            <button id="watch-btn" class="btn" onclick="triggerGigaPubAd('ad')">🎥 Watch Video Ad</button>
         </div>
         <div class="card">
             <h3>Recent Earnings</h3>
@@ -281,7 +281,7 @@
         <div id="wheel" class="wheel-container">
             <img src="https://i.imgur.com/8X8H5vA.png" style="width: 100%; height: 100%;" alt="Wheel">
         </div>
-        <button id="spin-btn" class="btn" onclick="spinWheel()" style="margin-top: 20px;">🎡 Spin Now (<span id="spin-count">3</span> left)</button>
+        <button id="spin-btn" class="btn" onclick="triggerGigaPubAd('spin')" style="margin-top: 20px;">🎡 Spin Now (<span id="spin-count">3</span> left)</button>
     </div>
 
     <div id="withdraw" class="page container">
@@ -290,23 +290,14 @@
             <h2 class="neon-text" style="font-size: 28px;">$ <span id="wd-balance">0.00</span></h2>
         </div>
         <div class="card">
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; font-size: 12px; margin-bottom: 5px; color: var(--text-gray);">SELECT METHOD</label>
-                <select id="wd-method" style="width: 100%; background: #222; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px;">
-                    <option value="bkash">bKash</option>
-                    <option value="nagad">Nagad</option>
-                    <option value="rocket">Rocket</option>
-                </select>
-            </div>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; font-size: 12px; margin-bottom: 5px; color: var(--text-gray);">ACCOUNT NUMBER</label>
-                <input type="text" id="wd-account" placeholder="Enter number" style="width: 100%; background: #222; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px;">
-            </div>
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; font-size: 12px; margin-bottom: 5px; color: var(--text-gray);">AMOUNT (MIN 300 COINS)</label>
-                <input type="number" id="wd-amount" placeholder="Minimum 300" style="width: 100%; background: #222; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px;">
-            </div>
-            <button class="btn" onclick="submitWithdraw()">Withdraw Funds</button>
+            <select id="wd-method" style="width: 100%; background: #222; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                <option value="bkash">bKash</option>
+                <option value="nagad">Nagad</option>
+                <option value="rocket">Rocket</option>
+            </select>
+            <input type="text" id="wd-account" placeholder="Enter account number" style="width: 100%; background: #222; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+            <input type="number" id="wd-amount" placeholder="Minimum 300" style="width: 100%; background: #222; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px; margin-bottom: 20px;">
+            <button class="btn" onclick="triggerGigaPubAd('withdraw')">Withdraw Funds</button>
         </div>
     </div>
 
@@ -325,6 +316,7 @@
     <div id="ad-overlay" class="ad-timer-overlay">
         <h2 style="margin-bottom: 20px;">Watching Ad...</h2>
         <div class="countdown-circle"><span id="ad-sec">15</span></div>
+        <p style="margin-top: 20px; color: var(--text-gray);">Ad ses na howa porjonto skip hobe na!</p>
     </div>
 
     <nav class="bottom-nav">
@@ -340,6 +332,7 @@
         tg.expand();
         tg.enableClosingConfirmation();
 
+        // --- FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyCppnCPW_npU7QS8tmkX4MGzBtYx35I6G4",
             authDomain: "adearn-79f8b.firebaseapp.com",
@@ -355,6 +348,9 @@
 
         let userData = { coins: 0, adsToday: 0, spinsToday: 3, lastBonus: 0, referrals: 0, history: [] };
         let currentUserId = '';
+        let pendingAction = null;
+
+        const GIGAPUB_LINK = "https://link.gigapub.tech/l/9pp3y1rr";
 
         function init() {
             const user = tg.initDataUnsafe?.user || { id: '696969', first_name: 'Demo User' };
@@ -382,12 +378,46 @@
             }).catch(() => updateUI());
         }
 
-        function showPage(pageId, el) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            el.classList.add('active');
-            tg.HapticFeedback.impactOccurred('light');
+        // --- GIGAPUB AD TRIGGER ---
+        function triggerGigaPubAd(actionType) {
+            // Validation check
+            if (actionType === 'ad' && userData.adsToday >= 20) { showToast("Limit reached!"); return; }
+            if (actionType === 'spin' && userData.spinsToday <= 0) { showToast("No spins left!"); return; }
+            if (actionType === 'daily' && (Date.now() - userData.lastBonus < 86400000)) { showToast("Come back later"); return; }
+            if (actionType === 'withdraw') {
+                const amount = document.getElementById('wd-amount').value;
+                if (amount < 300 || userData.coins < amount) { showToast("Invalid amount"); return; }
+            }
+
+            pendingAction = actionType;
+            
+            // Ad link opens in new tab
+            window.open(GIGAPUB_LINK, '_blank');
+
+            // Internal timer starts (User cannot bypass)
+            const overlay = document.getElementById('ad-overlay');
+            const timerTxt = document.getElementById('ad-sec');
+            overlay.style.display = 'flex';
+            let timeLeft = 15;
+            timerTxt.innerText = timeLeft;
+
+            const interval = setInterval(() => {
+                timeLeft--;
+                timerTxt.innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    overlay.style.display = 'none';
+                    executeReward();
+                }
+            }, 1000);
+        }
+
+        function executeReward() {
+            if (pendingAction === 'ad') completeAd();
+            else if (pendingAction === 'daily') claimDaily();
+            else if (pendingAction === 'spin') spinWheel();
+            else if (pendingAction === 'withdraw') submitWithdraw();
+            pendingAction = null;
         }
 
         function updateUI() {
@@ -404,70 +434,67 @@
                 histDiv.innerHTML = userData.history.map(item => `
                     <div class="history-item">
                         <div><div>${item.type}</div><div style="font-size:10px;color:#666;">${item.date}</div></div>
-                        <div class="neon-text">+${item.amount}</div>
+                        <div class="neon-text">${item.amount.toString().startsWith('-') ? '' : '+'}${item.amount}</div>
                     </div>`).join('');
             }
             if(currentUserId) database.ref('users/' + currentUserId).set(userData);
+        }
+
+        function completeAd() {
+            const reward = Math.floor(Math.random() * 3) + 1;
+            userData.coins += reward;
+            userData.adsToday += 1;
+            if(!userData.history) userData.history = [];
+            userData.history.unshift({ type: 'Ad Reward', amount: reward, date: new Date().toLocaleTimeString() });
+            updateUI();
+            showToast(`Earned +${reward} Coins!`);
+        }
+
+        function claimDaily() {
+            userData.coins += 5;
+            userData.lastBonus = Date.now();
+            if(!userData.history) userData.history = [];
+            userData.history.unshift({ type: 'Daily Bonus', amount: 5, date: new Date().toLocaleDateString() });
+            updateUI();
+            showToast("Claimed +5 Coins!");
+        }
+
+        function spinWheel() {
+            userData.spinsToday -= 1;
+            const wheel = document.getElementById('wheel');
+            const randomDeg = Math.floor(Math.random() * 360) + 1440;
+            wheel.style.transform = `rotate(${randomDeg}deg)`;
+            setTimeout(() => {
+                userData.coins += 2;
+                updateUI();
+                showToast("Won 2 Coins!");
+            }, 4000);
+        }
+
+        function submitWithdraw() {
+            const amount = parseInt(document.getElementById('wd-amount').value);
+            const method = document.getElementById('wd-method').value;
+            const account = document.getElementById('wd-account').value;
+            if(!account) { showToast("Enter account number"); return; }
+            userData.coins -= amount;
+            if(!userData.history) userData.history = [];
+            userData.history.unshift({ type: `Withdrawal (${method})`, amount: `-${amount}`, date: new Date().toLocaleDateString() });
+            updateUI();
+            showToast("Withdrawal Pending!");
+        }
+
+        function showPage(pageId, el) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
+            tg.HapticFeedback.impactOccurred('light');
         }
 
         function showToast(msg) {
             const t = document.getElementById('toast');
             t.innerText = msg; t.style.display = 'block';
             setTimeout(() => t.style.display = 'none', 3000);
-        }
-
-        function startAd() {
-            if (userData.adsToday >= 20) { showToast("Limit reached!"); return; }
-            const overlay = document.getElementById('ad-overlay');
-            const timerTxt = document.getElementById('ad-sec');
-            overlay.style.display = 'flex';
-            let timeLeft = 15;
-            const interval = setInterval(() => {
-                timeLeft--; timerTxt.innerText = timeLeft;
-                if (timeLeft <= 0) { clearInterval(interval); overlay.style.display = 'none'; completeAd(); }
-            }, 1000);
-        }
-
-        function completeAd() {
-            const reward = Math.floor(Math.random() * 3) + 1;
-            userData.coins += reward; userData.adsToday += 1;
-            if(!userData.history) userData.history = [];
-            userData.history.unshift({ type: 'Ad Reward', amount: reward, date: new Date().toLocaleTimeString() });
-            updateUI(); showToast(`Earned +${reward} Coins!`);
-        }
-
-        function claimDaily() {
-            const now = Date.now();
-            if (now - userData.lastBonus < 86400000) { showToast("Come back later"); return; }
-            userData.coins += 5; userData.lastBonus = now;
-            if(!userData.history) userData.history = [];
-            userData.history.unshift({ type: 'Daily Bonus', amount: 5, date: new Date().toLocaleDateString() });
-            updateUI(); showToast("Claimed +5 Coins!");
-        }
-
-        let isSpinning = false;
-        function spinWheel() {
-            if (isSpinning || userData.spinsToday <= 0) { showToast("No spins left!"); return; }
-            isSpinning = true; userData.spinsToday -= 1;
-            const wheel = document.getElementById('wheel');
-            const randomDeg = Math.floor(Math.random() * 360) + 1440;
-            wheel.style.transform = `rotate(${randomDeg}deg)`;
-            setTimeout(() => { isSpinning = false; userData.coins += 2; updateUI(); showToast("Won 2 Coins!"); }, 4000);
-        }
-
-        function submitWithdraw() {
-            const amount = document.getElementById('wd-amount').value;
-            const account = document.getElementById('wd-account').value;
-            const method = document.getElementById('wd-method').value;
-
-            if (amount < 300 || userData.coins < amount) { showToast("Invalid amount"); return; }
-            if (!account) { showToast("Enter account number"); return; }
-
-            userData.coins -= amount;
-            if(!userData.history) userData.history = [];
-            userData.history.unshift({ type: `Withdrawal (${method})`, amount: `-${amount}`, date: new Date().toLocaleDateString() });
-            updateUI(); showToast("Pending!");
-            tg.HapticFeedback.notificationOccurred('warning');
         }
 
         function copyRef() {
