@@ -37,7 +37,6 @@
             padding-bottom: 80px;
         }
 
-        /* --- UI COMPONENTS --- */
         .container { padding: 16px; }
 
         .card {
@@ -72,7 +71,6 @@
         .btn:disabled { background: #333; color: #666; cursor: not-allowed; }
         .btn:active { transform: scale(0.98); opacity: 0.9; }
 
-        /* --- HEADER --- */
         header {
             display: flex;
             align-items: center;
@@ -95,7 +93,6 @@
 
         .user-pill img { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--neon-green); }
 
-        /* --- DASHBOARD --- */
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -112,7 +109,6 @@
         .stat-value { font-size: 22px; font-weight: 800; margin-top: 4px; }
         .stat-label { font-size: 12px; color: var(--text-gray); text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* --- NAV BAR --- */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -142,7 +138,6 @@
         .nav-item.active { color: var(--neon-green); }
         .nav-item svg { width: 24px; height: 24px; margin-bottom: 4px; }
 
-        /* --- PAGES --- */
         .page { display: none; animation: fadeIn 0.4s ease; }
         .page.active { display: block; }
 
@@ -151,7 +146,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- AD MODULE --- */
         .ad-timer-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -180,7 +174,6 @@
 
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* --- SPIN WHEEL --- */
         .wheel-container {
             width: 280px;
             height: 280px;
@@ -202,7 +195,6 @@
             z-index: 10;
         }
 
-        /* --- TOAST --- */
         #toast {
             position: fixed;
             top: 20px;
@@ -218,7 +210,6 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
 
-        /* --- LISTS --- */
         .history-item {
             display: flex;
             justify-content: space-between;
@@ -271,15 +262,11 @@
         <div class="card">
             <h2 style="margin-bottom: 10px;">GigaPub Ad Engine</h2>
             <p style="color: var(--text-gray); font-size: 14px; margin-bottom: 20px;">Watch a short video ad to earn between 1-3 coins instantly.</p>
-            
             <div style="background: #000; height: 180px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; border: 1px dashed #444;">
                 <span style="color: #444;">Ad Placement Holder</span>
             </div>
-
             <button id="watch-btn" class="btn" onclick="startAd()">🎥 Watch Video Ad</button>
-            <p id="ad-cooldown-txt" style="text-align: center; margin-top: 10px; font-size: 12px; color: var(--danger);"></p>
         </div>
-
         <div class="card">
             <h3>Recent Earnings</h3>
             <div id="ad-history">
@@ -290,13 +277,10 @@
 
     <div id="spin" class="page container" style="text-align: center;">
         <h2>Lucky Spin</h2>
-        <p style="color: var(--text-gray);">Try your luck! 3 spins daily.</p>
-        
         <div class="wheel-pointer"></div>
         <div id="wheel" class="wheel-container">
             <img src="https://i.imgur.com/8X8H5vA.png" style="width: 100%; height: 100%;" alt="Wheel">
         </div>
-
         <button id="spin-btn" class="btn" onclick="spinWheel()" style="margin-top: 20px;">🎡 Spin Now (<span id="spin-count">3</span> left)</button>
     </div>
 
@@ -305,28 +289,23 @@
             <p class="stat-label">Available for Withdrawal</p>
             <h2 class="neon-text" style="font-size: 28px;">$ <span id="wd-balance">0.00</span></h2>
         </div>
-
         <div class="card">
             <div style="margin-bottom: 15px;">
                 <label style="display: block; font-size: 12px; margin-bottom: 5px; color: var(--text-gray);">SELECT METHOD</label>
                 <select id="wd-method" style="width: 100%; background: #222; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px;">
                     <option value="bkash">bKash</option>
                     <option value="nagad">Nagad</option>
-                    <option value="usdt">USDT (TRC20)</option>
+                    <option value="rocket">Rocket</option>
                 </select>
             </div>
-
             <div style="margin-bottom: 15px;">
                 <label style="display: block; font-size: 12px; margin-bottom: 5px; color: var(--text-gray);">ACCOUNT NUMBER</label>
-                <input type="text" id="wd-account" placeholder="Enter number or wallet address" style="width: 100%; background: #222; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px;">
+                <input type="text" id="wd-account" placeholder="Enter number" style="width: 100%; background: #222; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px;">
             </div>
-
             <div style="margin-bottom: 20px;">
                 <label style="display: block; font-size: 12px; margin-bottom: 5px; color: var(--text-gray);">AMOUNT (MIN 300 COINS)</label>
                 <input type="number" id="wd-amount" placeholder="Minimum 300" style="width: 100%; background: #222; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px;">
-                <p style="font-size: 11px; margin-top: 5px; color: var(--text-gray);">Service Fee: 10%</p>
             </div>
-
             <button class="btn" onclick="submitWithdraw()">Withdraw Funds</button>
         </div>
     </div>
@@ -336,50 +315,24 @@
             <img id="prof-photo" src="" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--neon-green); margin-bottom: 10px;">
             <h2 id="prof-name">Username</h2>
             <p style="color: var(--text-gray); font-size: 14px;">ID: <span id="prof-id">0000000</span></p>
-            <div style="display: inline-block; background: rgba(57,255,20,0.1); padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-top: 10px;" class="neon-text">Verified Account</div>
         </div>
-
         <div class="card">
-            <h3>Invite & Earn</h3>
-            <p style="font-size: 13px; color: var(--text-gray); margin: 8px 0 15px;">Share link and get 10 coins per friend.</p>
-            <div style="display: flex; gap: 10px;">
-                <input type="text" id="ref-link" readonly value="https://t.me/AdEarnBot?start=123" style="flex: 1; background: #000; border: 1px solid #333; color: var(--neon-green); padding: 10px; border-radius: 8px; font-size: 12px;">
-                <button onclick="copyRef()" style="background: var(--card-bg); border: 1px solid #444; color: white; padding: 0 15px; border-radius: 8px;">Copy</button>
-            </div>
+            <input type="text" id="ref-link" readonly style="width: 100%; background: #000; border: 1px solid #333; color: var(--neon-green); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+            <button class="btn" onclick="copyRef()">Copy Referral Link</button>
         </div>
-
-        <button class="btn" style="background: transparent; border: 1px solid var(--danger); color: var(--danger);" onclick="tg.close()">Exit App</button>
     </div>
 
     <div id="ad-overlay" class="ad-timer-overlay">
-        <h2 style="margin-bottom: 20px;">Watching GigaPub Ad...</h2>
-        <div class="countdown-circle">
-            <span id="ad-sec" style="animation: none;">15</span>
-        </div>
-        <p style="margin-top: 20px; color: var(--text-gray);">Do not close the app or you won't get coins!</p>
+        <h2 style="margin-bottom: 20px;">Watching Ad...</h2>
+        <div class="countdown-circle"><span id="ad-sec">15</span></div>
     </div>
 
     <nav class="bottom-nav">
-        <a href="#" class="nav-item active" onclick="showPage('home', this)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
-            Home
-        </a>
-        <a href="#" class="nav-item" onclick="showPage('ads', this)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><path d="M17 2l-5 5-5-5"></path></svg>
-            Ads
-        </a>
-        <a href="#" class="nav-item" onclick="showPage('spin', this)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
-            Spin
-        </a>
-        <a href="#" class="nav-item" onclick="showPage('withdraw', this)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-            Wallet
-        </a>
-        <a href="#" class="nav-item" onclick="showPage('profile', this)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            Profile
-        </a>
+        <a href="#" class="nav-item active" onclick="showPage('home', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a>
+        <a href="#" class="nav-item" onclick="showPage('ads', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><path d="M17 2l-5 5-5-5"></path></svg>Ads</a>
+        <a href="#" class="nav-item" onclick="showPage('spin', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>Spin</a>
+        <a href="#" class="nav-item" onclick="showPage('withdraw', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>Wallet</a>
+        <a href="#" class="nav-item" onclick="showPage('profile', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Profile</a>
     </nav>
 
     <script>
@@ -387,237 +340,141 @@
         tg.expand();
         tg.enableClosingConfirmation();
 
-        // --- FIREBASE CONFIGURATION ---
         const firebaseConfig = {
-  apiKey: "AIzaSyCppnCPW_npU7QS8tmkX4MGzBtYx35I6G4",
-  authDomain: "adearn-79f8b.firebaseapp.com",
-  databaseURL: "https://adearn-79f8b-default-rtdb.firebaseio.com",
-  projectId: "adearn-79f8b",
-  storageBucket: "adearn-79f8b.firebasestorage.app",
-  messagingSenderId: "136478270159",
-  appId: "1:136478270159:web:24484fc7b56f81ad2f0dba",
-  measurementId: "G-JJJ3TN25F4"
-};
+            apiKey: "AIzaSyCppnCPW_npU7QS8tmkX4MGzBtYx35I6G4",
+            authDomain: "adearn-79f8b.firebaseapp.com",
+            databaseURL: "https://adearn-79f8b-default-rtdb.firebaseio.com",
+            projectId: "adearn-79f8b",
+            storageBucket: "adearn-79f8b.firebasestorage.app",
+            messagingSenderId: "136478270159",
+            appId: "1:136478270159:web:24484fc7b56f81ad2f0dba"
+        };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // --- APP STATE ---
-        let userData = {
-            coins: 0,
-            adsToday: 0,
-            spinsToday: 3,
-            lastBonus: 0,
-            referrals: 0,
-            history: []
-        };
-
+        let userData = { coins: 0, adsToday: 0, spinsToday: 3, lastBonus: 0, referrals: 0, history: [] };
         let currentUserId = '';
 
-        // --- INITIALIZATION ---
         function init() {
-            const user = tg.initDataUnsafe?.user || { id: '696969', first_name: 'Demo User', username: 'demo_adearn' };
+            const user = tg.initDataUnsafe?.user || { id: '696969', first_name: 'Demo User' };
             currentUserId = user.id;
-
             document.getElementById('user-name').innerText = user.first_name;
             document.getElementById('prof-name').innerText = user.first_name;
             document.getElementById('prof-id').innerText = user.id;
             document.getElementById('ref-link').value = `https://t.me/AdEarnBot?start=${user.id}`;
             
-            if (user.photo_url) {
-                document.getElementById('user-photo').src = user.photo_url;
-                document.getElementById('prof-photo').src = user.photo_url;
-            } else {
-                document.getElementById('prof-photo').src = `https://ui-avatars.com/api/?name=${user.first_name}&background=39ff14&color=000`;
-            }
-
-            // Load from Firebase instead of LocalStorage
             database.ref('users/' + currentUserId).once('value').then((snapshot) => {
                 if (snapshot.exists()) {
-                    userData = snapshot.val();
+                    const data = snapshot.val();
+                    userData = {
+                        coins: data.coins || 0,
+                        adsToday: data.adsToday || 0,
+                        spinsToday: data.spinsToday ?? 3,
+                        lastBonus: data.lastBonus || 0,
+                        referrals: data.referrals || 0,
+                        history: data.history || []
+                    };
+                } else {
+                    database.ref('users/' + currentUserId).set(userData);
                 }
                 updateUI();
-            });
+            }).catch(() => updateUI());
         }
 
-        // --- NAVIGATION ---
         function showPage(pageId, el) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
-            
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             el.classList.add('active');
-            
             tg.HapticFeedback.impactOccurred('light');
         }
 
-        // --- UI UPDATES ---
         function updateUI() {
-            const usdVal = (userData.coins * 0.01).toFixed(2);
-            
-            document.getElementById('top-balance').innerText = userData.coins;
-            document.getElementById('dash-balance').innerText = usdVal;
-            document.getElementById('dash-coins').innerText = userData.coins;
-            document.getElementById('wd-balance').innerText = usdVal;
-            document.getElementById('dash-ads').innerText = `${userData.adsToday}/20`;
-            document.getElementById('dash-ref').innerText = userData.referrals;
-            document.getElementById('spin-count').innerText = userData.spinsToday;
+            document.getElementById('top-balance').innerText = userData.coins || 0;
+            document.getElementById('dash-balance').innerText = ((userData.coins || 0) * 0.01).toFixed(2);
+            document.getElementById('dash-coins').innerText = userData.coins || 0;
+            document.getElementById('wd-balance').innerText = ((userData.coins || 0) * 0.01).toFixed(2);
+            document.getElementById('dash-ads').innerText = `${userData.adsToday || 0}/20`;
+            document.getElementById('dash-ref').innerText = userData.referrals || 0;
+            document.getElementById('spin-count').innerText = userData.spinsToday ?? 3;
 
-            // Update History
             const histDiv = document.getElementById('ad-history');
             if (userData.history && userData.history.length > 0) {
                 histDiv.innerHTML = userData.history.map(item => `
                     <div class="history-item">
-                        <div>
-                            <div style="font-size: 14px;">${item.type}</div>
-                            <div style="font-size: 10px; color: #666;">${item.date}</div>
-                        </div>
+                        <div><div>${item.type}</div><div style="font-size:10px;color:#666;">${item.date}</div></div>
                         <div class="neon-text">+${item.amount}</div>
-                    </div>
-                `).join('');
+                    </div>`).join('');
             }
-
-            // Save to Firebase instead of LocalStorage
-            if(currentUserId) {
-                database.ref('users/' + currentUserId).set(userData);
-            }
+            if(currentUserId) database.ref('users/' + currentUserId).set(userData);
         }
 
-        // --- TOAST ---
         function showToast(msg) {
             const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.style.display = 'block';
+            t.innerText = msg; t.style.display = 'block';
             setTimeout(() => t.style.display = 'none', 3000);
         }
 
-        // --- CORE LOGIC: WATCH ADS ---
         function startAd() {
-            if (userData.adsToday >= 20) {
-                showToast("Daily limit reached!");
-                return;
-            }
-
+            if (userData.adsToday >= 20) { showToast("Limit reached!"); return; }
             const overlay = document.getElementById('ad-overlay');
             const timerTxt = document.getElementById('ad-sec');
-            const watchBtn = document.getElementById('watch-btn');
-            
             overlay.style.display = 'flex';
             let timeLeft = 15;
-            timerTxt.innerText = timeLeft;
-
             const interval = setInterval(() => {
-                timeLeft--;
-                timerTxt.innerText = timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(interval);
-                    overlay.style.display = 'none';
-                    completeAd();
-                }
+                timeLeft--; timerTxt.innerText = timeLeft;
+                if (timeLeft <= 0) { clearInterval(interval); overlay.style.display = 'none'; completeAd(); }
             }, 1000);
         }
 
         function completeAd() {
             const reward = Math.floor(Math.random() * 3) + 1;
-            userData.coins += reward;
-            userData.adsToday += 1;
+            userData.coins += reward; userData.adsToday += 1;
             if(!userData.history) userData.history = [];
-            userData.history.unshift({
-                type: 'Ad Reward',
-                amount: reward,
-                date: new Date().toLocaleTimeString()
-            });
-            
-            updateUI();
-            showToast(`Earned +${reward} Coins!`);
-            tg.HapticFeedback.notificationOccurred('success');
+            userData.history.unshift({ type: 'Ad Reward', amount: reward, date: new Date().toLocaleTimeString() });
+            updateUI(); showToast(`Earned +${reward} Coins!`);
         }
 
-        // --- DAILY BONUS ---
         function claimDaily() {
             const now = Date.now();
-            if (now - userData.lastBonus < 86400000) {
-                const hoursLeft = Math.ceil((86400000 - (now - userData.lastBonus)) / 3600000);
-                showToast(`Come back in ${hoursLeft} hours`);
-                return;
-            }
-
-            userData.coins += 5;
-            userData.lastBonus = now;
+            if (now - userData.lastBonus < 86400000) { showToast("Come back later"); return; }
+            userData.coins += 5; userData.lastBonus = now;
             if(!userData.history) userData.history = [];
-            userData.history.unshift({
-                type: 'Daily Bonus',
-                amount: 5,
-                date: new Date().toLocaleDateString()
-            });
-            updateUI();
-            showToast("Claimed +5 Coins!");
+            userData.history.unshift({ type: 'Daily Bonus', amount: 5, date: new Date().toLocaleDateString() });
+            updateUI(); showToast("Claimed +5 Coins!");
         }
 
-        // --- SPIN WHEEL ---
         let isSpinning = false;
         function spinWheel() {
-            if (isSpinning || userData.spinsToday <= 0) {
-                showToast(userData.spinsToday <= 0 ? "No spins left!" : "Wait...");
-                return;
-            }
-
-            isSpinning = true;
-            userData.spinsToday -= 1;
+            if (isSpinning || userData.spinsToday <= 0) { showToast("No spins left!"); return; }
+            isSpinning = true; userData.spinsToday -= 1;
             const wheel = document.getElementById('wheel');
-            const randomDeg = Math.floor(Math.random() * 360) + 1440; // 4 full rotations min
-            
+            const randomDeg = Math.floor(Math.random() * 360) + 1440;
             wheel.style.transform = `rotate(${randomDeg}deg)`;
-
-            setTimeout(() => {
-                isSpinning = false;
-                const reward = 2; // Fixed demo reward
-                userData.coins += reward;
-                showToast(`Won ${reward} Coins!`);
-                updateUI();
-            }, 4000);
+            setTimeout(() => { isSpinning = false; userData.coins += 2; updateUI(); showToast("Won 2 Coins!"); }, 4000);
         }
 
-        // --- WITHDRAW ---
         function submitWithdraw() {
             const amount = document.getElementById('wd-amount').value;
             const account = document.getElementById('wd-account').value;
+            const method = document.getElementById('wd-method').value;
 
-            if (amount < 300) {
-                showToast("Minimum 300 Coins");
-                return;
-            }
-            if (userData.coins < amount) {
-                showToast("Insufficient balance");
-                return;
-            }
-            if (!account) {
-                showToast("Enter account number");
-                return;
-            }
+            if (amount < 300 || userData.coins < amount) { showToast("Invalid amount"); return; }
+            if (!account) { showToast("Enter account number"); return; }
 
             userData.coins -= amount;
             if(!userData.history) userData.history = [];
-            userData.history.unshift({
-                type: 'Withdrawal',
-                amount: `-${amount}`,
-                date: new Date().toLocaleDateString()
-            });
-            
-            updateUI();
-            showToast("Withdrawal Pending!");
+            userData.history.unshift({ type: `Withdrawal (${method})`, amount: `-${amount}`, date: new Date().toLocaleDateString() });
+            updateUI(); showToast("Pending!");
             tg.HapticFeedback.notificationOccurred('warning');
         }
 
         function copyRef() {
             const link = document.getElementById('ref-link');
-            link.select();
-            document.execCommand('copy');
-            showToast("Link Copied!");
+            link.select(); document.execCommand('copy'); showToast("Copied!");
         }
 
-        // Run Init
         window.onload = init;
     </script>
 </body>
