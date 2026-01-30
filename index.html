@@ -309,25 +309,6 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .admin-header { display: flex; justify-content: space-between; align-items: center; padding: 20px;}
-        .admin-stats { display: flex; gap: 10px; font-size: 12px; }
-        .a-stat { background: #eee; padding: 5px 10px; border-radius: 5px;}
-        .admin-list { padding-bottom: 80px; }
-        
-        .admin-item {
-            background: white;
-            padding: 10px;
-            margin: 10px 20px;
-            border-radius: 10px;
-            border-left: 4px solid var(--primary);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .btn-approve { background: var(--success); color: white; border: none; padding: 5px 10px; border-radius: 5px; margin-right: 5px; cursor: pointer;}
-        .btn-reject { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;}
-        
         .history-list { padding: 20px; }
         .empty-state { text-align: center; color: #888; margin-top: 50px; }
     </style>
@@ -496,17 +477,6 @@
                 </div>
             </div>
 
-            <div id="view-admin" class="view">
-                <div class="admin-header">
-                    <h2 style="margin:0;">Admin Panel</h2>
-                    <div class="admin-stats">
-                        <div class="a-stat">Users: <span id="adm-users">0</span></div>
-                        <div class="a-stat">Pending: <span id="adm-pending">0</span></div>
-                    </div>
-                </div>
-                <h3 style="padding:0 20px;">Withdraw Requests</h3>
-                <div id="admin-withdraw-list" class="admin-list"></div>
-            </div>
         </div>
 
         <nav class="bottom-nav">
@@ -530,7 +500,6 @@
     </div>
 
     <script>
-        // CONFIGURATION
         const firebaseConfig = {
           apiKey: "AIzaSyCppnCPW_npU7QS8tmkX4MGzBtYx35I6G4",
           authDomain: "adearn-79f8b.firebaseapp.com",
@@ -542,372 +511,181 @@
           measurementId: "G-JJJ3TN25F4"
         };
 
-        // Initialize Firebase
-        try {
-            firebase.initializeApp(firebaseConfig);
-            const db = firebase.firestore();
-            const tg = window.Telegram.WebApp;
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const tg = window.Telegram.WebApp;
 
-            // STATE
-            let currentUser = null;
-            let userData = {};
-            let selectedWithdrawMethod = null;
-            let minWithdrawAmount = 10000;
-            let adReward = 0.50; // Dynamic from admin
-            let adLimit = 100;    // Dynamic from admin
-            const ADMIN_IDS = [123456789, 987654321]; 
+        let currentUser = null;
+        let userData = {};
+        let adReward = 0.50;
+        let adLimit = 100;
 
-            // INITIALIZATION
-            document.addEventListener("DOMContentLoaded", async () => {
-                tg.ready();
-                tg.expand();
+        document.addEventListener("DOMContentLoaded", () => {
+            tg.ready();
+            tg.expand();
 
-                let user = tg.initDataUnsafe.user;
-                if (!user) {
-                    user = { id: 999999, first_name: "Test", last_name: "User", username: "testuser" };
-                    console.warn("Test Mode Active");
-                }
+            let user = tg.initDataUnsafe.user || { id: 999999, first_name: "Test", last_name: "User", username: "testuser" };
+            currentUser = user;
+            initUser(user);
+            listenToAdsConfig();
+            listenToTasks();
+        });
 
-                currentUser = user;
-                initUser(user);
-                listenToAdsConfig();
-                listenToTasks();
-            });
-
-            // LISTENERS FOR ADMIN DATA
-            function listenToAdsConfig() {
-                db.collection("settings").doc("adsConfig").onSnapshot(doc => {
-                    if(doc.exists) {
-                        const data = doc.data();
-                        adReward = data.reward || 0.50;
-                        adLimit = data.limit || 100;
-                        
-                        document.getElementById('earn-subtitle').innerText = `প্রতি বিজ্ঞাপন দেখলে ${adReward.toFixed(2)} HMSTR আয় করুন`;
-                        document.getElementById('ad-reward-display').innerText = `💵 ${adReward.toFixed(2)} HMSTR`;
-                        if(userData.id) {
-                            document.getElementById('ads-watched-count').innerText = `${userData.adsWatched}/${adLimit}`;
-                        }
-                    }
-                });
-            }
-
-            function listenToTasks() {
-                db.collection("tasks").where("status", "==", "active").onSnapshot(snap => {
-                    const taskList = document.getElementById('dynamic-task-list');
-                    if(snap.empty) {
-                        taskList.innerHTML = '<p style="text-align:center; color:#888;">নতুন কোনো টাস্ক নেই</p>';
-                        return;
-                    }
-                    
-                    let html = '';
-                    snap.forEach(doc => {
-                        const task = doc.data();
-                        html += `
-                            <div class="ad-card" style="border-left: 4px solid var(--success); margin-bottom:10px;">
-                                <div style="display:flex; align-items:center; gap:10px;">
-                                    <div class="ad-text">
-                                        <h4 style="margin:0;">${task.name}</h4>
-                                        <span class="reward-tag">💵 ${task.reward.toFixed(2)} HMSTR</span>
-                                    </div>
-                                </div>
-                                <button class="btn-sm" style="background:var(--primary); color:white; padding:8px 15px;" onclick="doTask('${task.link}', '${doc.id}', ${task.reward})">Complete</button>
-                            </div>
-                        `;
+        function initUser(user) {
+            const userRef = db.collection('users').doc(user.id.toString());
+            
+            userRef.onSnapshot((doc) => {
+                if(doc.exists) {
+                    userData = doc.data();
+                    updateUI();
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('app').style.display = 'block';
+                } else {
+                    userRef.set({
+                        id: user.id,
+                        username: user.username || "User",
+                        firstName: user.first_name,
+                        balance: 0.00,
+                        adsWatched: 0,
+                        referrals: 0,
+                        verified: false,
+                        joinedAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
-                    taskList.innerHTML = html;
-                });
-            }
-
-            window.doTask = (link, taskId, reward) => {
-                tg.openLink(link);
-                tg.showConfirm("আপনি কি টাস্কটি সঠিকভাবে সম্পন্ন করেছেন?", (ok) => {
-                    if(ok) {
-                        db.collection('users').doc(currentUser.id.toString()).update({
-                            balance: firebase.firestore.FieldValue.increment(reward)
-                        });
-                        tg.showAlert("রিওয়ার্ড আপনার ব্যালেন্সে যোগ করা হয়েছে!");
-                    }
-                });
-            };
-
-            // USER LOGIC
-            function initUser(user) {
-                const userRef = db.collection('users').doc(user.id.toString());
-                
-                userRef.get().then((docSnapshot) => {
-                    const startParam = tg.initDataUnsafe.start_param;
-                    let referrerId = null;
-                    if (startParam && startParam != user.id) {
-                        referrerId = startParam;
-                    }
-
-                    if (!docSnapshot.exists) {
-                        userRef.set({
-                            id: user.id,
-                            username: user.username || "User",
-                            firstName: user.first_name,
-                            balance: 0.00,
-                            adsWatched: 0,
-                            referrals: 0,
-                            verified: false,
-                            referrer: referrerId,
-                            joinedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        }).then(() => {
-                            if (referrerId) {
-                                const refUserRef = db.collection('users').doc(referrerId.toString());
-                                refUserRef.update({
-                                    balance: firebase.firestore.FieldValue.increment(1.00),
-                                    referrals: firebase.firestore.FieldValue.increment(1)
-                                }).catch(e => console.log(e));
-                            }
-                        });
-                    }
-                });
-
-                userRef.onSnapshot((doc) => {
-                    if(doc.exists) {
-                        userData = doc.data();
-                        updateUI();
-                        document.getElementById('loader').style.display = 'none';
-                        document.getElementById('app').style.display = 'block';
-                        
-                        if(!sessionStorage.getItem('noticeShown')) {
-                            document.getElementById('notice-modal').style.display = 'flex';
-                            sessionStorage.setItem('noticeShown', 'true');
-                        }
-                    }
-                }, (error) => {
-                    console.error("Firestore Error:", error);
-                    document.getElementById('error-msg').style.display = 'block';
-                    document.getElementById('error-msg').innerText = "Error: " + error.message;
-                });
-
-                if (ADMIN_IDS.includes(user.id)) {
-                    initAdminPanel();
                 }
-            }
+            });
+        }
 
-            function updateUI() {
-                document.getElementById('user-name').innerHTML = `${userData.firstName} ${userData.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}`;
-                document.getElementById('user-id-display').innerText = `ID: ${userData.id}`;
-                document.getElementById('user-avatar').src = currentUser.photo_url || "https://via.placeholder.com/50";
-                
-                document.getElementById('main-balance').innerHTML = `${userData.balance.toFixed(2)} <span class="currency">HMSTR 🐹</span>`;
-                document.getElementById('ads-watched-count').innerText = `${userData.adsWatched}/${adLimit}`;
-                document.getElementById('refer-count').innerText = userData.referrals;
-                
-                const link = `https://t.me/AdEarnBot?start=${userData.id}`;
-                document.getElementById('refer-link').value = link;
-
-                if(userData.verified) {
-                    const btn = document.getElementById('btn-verify');
-                    btn.innerText = "Verified";
-                    btn.classList.replace('btn-sm', 'btn-success');
-                    btn.disabled = true;
+        function listenToAdsConfig() {
+            db.collection("settings").doc("adsConfig").onSnapshot(doc => {
+                if(doc.exists) {
+                    const data = doc.data();
+                    adReward = data.reward || 0.50;
+                    adLimit = data.limit || 100;
+                    document.getElementById('earn-subtitle').innerText = `প্রতি বিজ্ঞাপন দেখলে ${adReward.toFixed(2)} HMSTR আয় করুন`;
+                    document.getElementById('ad-reward-display').innerText = `💵 ${adReward.toFixed(2)} HMSTR`;
+                    if(userData.id) updateUI();
                 }
-            }
+            });
+        }
 
-            window.switchTab = (tabName) => {
-                document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-                document.getElementById(`view-${tabName}`).classList.add('active');
-                
-                const tabs = ['home', 'earn', 'withdraw', 'history', 'profile'];
-                const index = tabs.indexOf(tabName);
-                if(index > -1 && index < 4) {
-                    document.querySelectorAll('.nav-item')[index].classList.add('active');
-                }
-                
-                if (tabName === 'history') loadHistory();
-                if(tabName === 'profile' && ADMIN_IDS.includes(currentUser.id)) {
-                    document.getElementById('view-admin').classList.add('active');
-                }
-            };
-
-            window.closeNotice = () => {
-                document.getElementById('notice-modal').style.display = 'none';
-            };
-
-            window.watchAd = () => {
-                if (userData.adsWatched >= adLimit) {
-                    tg.showAlert(`আজকের লিমিট (${adLimit}) শেষ! আগামীকাল আবার চেষ্টা করুন।`);
+        function listenToTasks() {
+            db.collection("tasks").where("status", "==", "active").onSnapshot(snap => {
+                const taskList = document.getElementById('dynamic-task-list');
+                if(snap.empty) {
+                    taskList.innerHTML = '<p style="text-align:center; color:#888;">নতুন কোনো টাস্ক নেই</p>';
                     return;
                 }
-                tg.showConfirm("বিজ্ঞাপনটি ১৫ সেকেন্ড দেখুন...", (ok) => {
-                    if(ok) {
-                        const btn = event.target;
-                        const originalText = btn.innerText;
-                        btn.innerText = "Wait 5s...";
-                        btn.disabled = true;
-
-                        setTimeout(() => {
-                            const userRef = db.collection('users').doc(currentUser.id.toString());
-                            userRef.update({
-                                balance: firebase.firestore.FieldValue.increment(adReward),
-                                adsWatched: firebase.firestore.FieldValue.increment(1)
-                            });
-                            btn.innerText = "Reward Added!";
-                            setTimeout(() => {
-                                btn.innerText = originalText;
-                                btn.disabled = false;
-                            }, 1000);
-                            tg.HapticFeedback.notificationOccurred('success');
-                        }, 5000);
-                    }
-                });
-            };
-
-            window.verifyHuman = () => {
-                tg.showPopup({
-                    title: "Verify Human",
-                    message: "Click OK to prove you are not a robot.",
-                    buttons: [{type: "ok"}]
-                }, () => {
-                    db.collection('users').doc(currentUser.id.toString()).update({ verified: true });
-                    tg.showAlert("অভিনন্দন! আপনি ভেরিফাইড ইউজার।");
-                });
-            };
-
-            window.copyReferral = () => {
-                const copyText = document.getElementById("refer-link");
-                copyText.select();
-                document.execCommand("copy");
-                tg.showAlert("রেফার লিংক কপি করা হয়েছে!");
-            };
-
-            window.shareReferral = () => {
-                const link = document.getElementById("refer-link").value;
-                const url = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("Join AdEarn and earn HMSTR! 🐹")}`;
-                tg.openTelegramLink(url);
-            };
-
-            window.selectMethod = (method, minTaka, minHmstr) => {
-                selectedWithdrawMethod = method;
-                minWithdrawAmount = minHmstr;
-                document.querySelectorAll('.method-card').forEach(el => el.classList.remove('selected'));
-                event.currentTarget.classList.add('selected');
-                document.getElementById('withdraw-form').classList.remove('hidden');
-                document.getElementById('selected-method-name').innerText = `${method} (Min: ${minHmstr} HMSTR)`;
-                document.getElementById('withdraw-amount').placeholder = `Min ${minHmstr}`;
-            };
-
-            window.submitWithdraw = () => {
-                const amount = parseFloat(document.getElementById('withdraw-amount').value);
-                const account = document.getElementById('withdraw-account').value;
-
-                if (!selectedWithdrawMethod || !amount || !account) {
-                    tg.showAlert("সব তথ্য পূরণ করুন"); return;
-                }
-                if (amount < minWithdrawAmount) {
-                    tg.showAlert(`সর্বনিম্ন উত্তোলন ${minWithdrawAmount} HMSTR`); return;
-                }
-                if (amount > userData.balance) {
-                    tg.showAlert("অপর্যাপ্ত ব্যালেন্স!"); return;
-                }
-
-                db.collection("withdrawals").add({
-                    userId: currentUser.id,
-                    username: userData.username,
-                    method: selectedWithdrawMethod,
-                    account: account,
-                    amount: amount,
-                    status: "pending",
-                    date: firebase.firestore.FieldValue.serverTimestamp()
-                }).then(() => {
-                    db.collection('users').doc(currentUser.id.toString()).update({ 
-                        balance: firebase.firestore.FieldValue.increment(-amount) 
-                    });
-                    tg.showAlert("উত্তোলন রিকোয়েস্ট জমা হয়েছে! ✅");
-                    document.getElementById('withdraw-form').classList.add('hidden');
-                    switchTab('history');
-                }).catch(e => tg.showAlert("ত্রুটি হয়েছে।"));
-            };
-
-            function loadHistory() {
-                const listDiv = document.getElementById('history-list');
-                listDiv.innerHTML = '<div class="spinner"></div>';
-                
-                db.collection("withdrawals").where("userId", "==", currentUser.id).get().then((querySnapshot) => {
-                    if(querySnapshot.empty) {
-                        listDiv.innerHTML = '<div class="empty-state">আপনার কোনো হিস্টোরি নেই</div>';
-                        return;
-                    }
-                    let html = '';
-                    querySnapshot.forEach((doc) => {
-                        const data = doc.data();
-                        let color = data.status === 'approved' ? 'green' : (data.status === 'rejected' ? 'red' : 'orange');
-                        let icon = data.status === 'approved' ? 'check-circle' : 'clock';
-                        html += `
-                        <div class="stat-card" style="margin-bottom: 10px; justify-content: space-between;">
+                let html = '';
+                snap.forEach(doc => {
+                    const task = doc.data();
+                    html += `
+                        <div class="ad-card" style="border-left: 4px solid var(--success); margin-bottom:10px;">
                             <div style="display:flex; align-items:center; gap:10px;">
-                                <i class="fas fa-${icon}" style="color:${color}"></i>
-                                <div>
-                                    <h4>${data.method}</h4>
-                                    <span style="font-size:12px; color:#888;">${data.amount} HMSTR</span>
+                                <div class="ad-text">
+                                    <h4 style="margin:0;">${task.name}</h4>
+                                    <span class="reward-tag">💵 ${task.reward.toFixed(2)} HMSTR</span>
                                 </div>
                             </div>
-                            <span style="color:${color}; font-weight:bold; font-size:12px; text-transform:uppercase;">${data.status}</span>
+                            <button class="btn-sm" style="background:var(--primary); color:white; padding:8px 15px;" onclick="doTask('${task.link}', '${doc.id}', ${task.reward})">Complete</button>
                         </div>`;
+                });
+                taskList.innerHTML = html;
+            });
+        }
+
+        window.doTask = (link, taskId, reward) => {
+            tg.openLink(link);
+            tg.showConfirm("আপনি কি টাস্কটি সঠিকভাবে সম্পন্ন করেছেন?", (ok) => {
+                if(ok) {
+                    db.collection('users').doc(currentUser.id.toString()).update({
+                        balance: firebase.firestore.FieldValue.increment(reward)
                     });
-                    listDiv.innerHTML = html;
-                });
+                    tg.showAlert("রিওয়ার্ড আপনার ব্যালেন্সে যোগ করা হয়েছে!");
+                }
+            });
+        };
+
+        window.watchAd = () => {
+            if (userData.adsWatched >= adLimit) {
+                tg.showAlert(`আজকের লিমিট (${adLimit}) শেষ!`);
+                return;
             }
-
-            function initAdminPanel() {
-                const nav = document.querySelector('.bottom-nav');
-                const adminBtn = document.createElement('div');
-                adminBtn.className = 'nav-item';
-                adminBtn.innerHTML = '<i class="fas fa-user-shield"></i><span>Admin</span>';
-                adminBtn.onclick = () => {
-                    document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-                    document.getElementById('view-admin').classList.add('active');
-                    loadAdminData();
-                };
-                nav.appendChild(adminBtn);
-            }
-
-            function loadAdminData() {
-                db.collection("users").get().then(snap => {
-                    document.getElementById('adm-users').innerText = snap.size;
-                });
-
-                db.collection("withdrawals").where("status", "==", "pending").get().then(snapshot => {
-                    document.getElementById('adm-pending').innerText = snapshot.size;
-                    const list = document.getElementById('admin-withdraw-list');
-                    list.innerHTML = '';
-                    
-                    snapshot.forEach(docSnap => {
-                        const d = docSnap.data();
-                        const item = document.createElement('div');
-                        item.className = 'admin-item';
-                        item.innerHTML = `
-                            <div>
-                                <strong>${d.username}</strong><br>
-                                <small>${d.method}: ${d.account}</small><br>
-                                <b>${d.amount} HMSTR</b>
-                            </div>
-                            <div>
-                                <button class=\"btn-approve\" onclick=\"processWithdraw('${docSnap.id}', 'approved')\">✔</button>
-                                <button class=\"btn-reject\" onclick=\"processWithdraw('${docSnap.id}', 'rejected', ${d.amount}, ${d.userId})\">✖</button>
-                            </div>
-                        `;
-                        list.appendChild(item);
+            tg.showConfirm("বিজ্ঞাপনটি ৫ সেকেন্ড দেখুন...", (ok) => {
+                if(ok) {
+                    db.collection('users').doc(currentUser.id.toString()).update({
+                        balance: firebase.firestore.FieldValue.increment(adReward),
+                        adsWatched: firebase.firestore.FieldValue.increment(1)
                     });
-                });
-            }
+                    tg.HapticFeedback.notificationOccurred('success');
+                }
+            });
+        };
 
-            window.processWithdraw = (docId, status, amount = 0, userId = 0) => {
-                if(!confirm(`Mark as ${status}?`)) return;
-                db.collection("withdrawals").doc(docId).update({ status: status }).then(() => {
-                    if (status === 'rejected') {
-                        db.collection("users").doc(userId.toString()).update({ balance: firebase.firestore.FieldValue.increment(amount) });
-                    }
-                    loadAdminData();
-                });
-            };
+        function updateUI() {
+            document.getElementById('user-name').innerHTML = `${userData.firstName} ${userData.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}`;
+            document.getElementById('user-id-display').innerText = `ID: ${userData.id}`;
+            document.getElementById('main-balance').innerHTML = `${(userData.balance || 0).toFixed(2)} <span class="currency">HMSTR 🐹</span>`;
+            document.getElementById('ads-watched-count').innerText = `${userData.adsWatched || 0}/${adLimit}`;
+            document.getElementById('refer-count').innerText = userData.referrals || 0;
+            document.getElementById('refer-link').value = `https://t.me/AdEarnBot?start=${userData.id}`;
+        }
 
-        } catch (e) {
-            alert("Firebase Init Error: " + e.message);
+        window.switchTab = (tab) => {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(`view-${tab}`).classList.add('active');
+            event.currentTarget.classList.add('active');
+            if(tab === 'history') loadHistory();
+        };
+
+        window.closeNotice = () => document.getElementById('notice-modal').style.display = 'none';
+
+        window.copyReferral = () => {
+            document.getElementById("refer-link").select();
+            document.execCommand("copy");
+            tg.showAlert("লিংক কপি হয়েছে!");
+        };
+
+        window.shareReferral = () => {
+            const link = document.getElementById("refer-link").value;
+            tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=Join AdEarn!`);
+        };
+
+        window.selectMethod = (method, minTaka, minHmstr) => {
+            selectedWithdrawMethod = method;
+            minWithdrawAmount = minHmstr;
+            document.getElementById('withdraw-form').classList.remove('hidden');
+            document.getElementById('selected-method-name').innerText = `${method} (Min: ${minHmstr} HMSTR)`;
+        };
+
+        window.submitWithdraw = () => {
+            const amount = parseFloat(document.getElementById('withdraw-amount').value);
+            const account = document.getElementById('withdraw-account').value;
+            if (amount < minWithdrawAmount || amount > userData.balance) return tg.showAlert("ভুল অ্যামাউন্ট!");
+
+            db.collection("withdrawals").add({
+                userId: currentUser.id,
+                method: selectedWithdrawMethod,
+                account: account,
+                amount: amount,
+                status: "pending",
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                db.collection('users').doc(currentUser.id.toString()).update({ balance: firebase.firestore.FieldValue.increment(-amount) });
+                tg.showAlert("রিকোয়েস্ট জমা হয়েছে!");
+                switchTab('history');
+            });
+        };
+
+        function loadHistory() {
+            db.collection("withdrawals").where("userId", "==", currentUser.id).get().then(snap => {
+                const list = document.getElementById('history-list');
+                list.innerHTML = snap.empty ? '<div class="empty-state">কোনো হিস্টোরি নেই</div>' : '';
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    list.innerHTML += `<div class="stat-card"><b>${d.method}</b>: ${d.amount} HMSTR [${d.status}]</div>`;
+                });
+            });
         }
     </script>
 </body>
