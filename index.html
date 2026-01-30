@@ -1,508 +1,864 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AdEarn - Watch & Earn</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
         :root {
-            --bg-black: #0a0a0a;
-            --card-bg: #161616;
-            --neon-green: #39ff14;
-            --neon-dim: #2ecb10;
-            --text-gray: #a0a0a0;
-            --white: #ffffff;
-            --danger: #ff4444;
-            --nav-bg: rgba(22, 22, 22, 0.95);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-tap-highlight-color: transparent;
+            --primary: #4a90e2;
+            --primary-dark: #357abd;
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --text-dark: #333333;
+            --text-light: #7f8c8d;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --radius: 16px;
+            --shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
         body {
-            background-color: var(--bg-black);
-            color: var(--white);
-            overflow-x: hidden;
-            padding-bottom: 80px;
+            margin: 0;
+            padding: 0;
+            font-family: 'Hind Siliguri', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            padding-bottom: 80px; 
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
-
-        .container { padding: 16px; }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 16px;
-            border: 1px solid #222;
-            transition: var(--transition);
-        }
-
-        .neon-text { color: var(--neon-green); text-shadow: 0 0 10px rgba(57, 255, 20, 0.3); }
-        .neon-border { border: 1px solid var(--neon-green) !important; }
-        
-        .btn {
-            background: var(--neon-green);
-            color: black;
-            border: none;
-            padding: 14px 24px;
-            border-radius: 12px;
-            font-weight: 700;
-            width: 100%;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-size: 16px;
-        }
-
-        .btn:disabled { background: #333; color: #666; cursor: not-allowed; }
-        .btn:active { transform: scale(0.98); opacity: 0.9; }
 
         header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 16px;
-            background: var(--bg-black);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            background: linear-gradient(135deg, #e3f2fd, #ffffff);
+            padding: 20px;
+            border-bottom-left-radius: 25px;
+            border-bottom-right-radius: 25px;
+            box-shadow: var(--shadow);
         }
 
-        .user-pill {
+        .profile-header {
             display: flex;
             align-items: center;
-            gap: 10px;
-            background: var(--card-bg);
-            padding: 6px 14px 6px 6px;
-            border-radius: 30px;
+            gap: 12px;
         }
 
-        .user-pill img { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--neon-green); }
+        #user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            object-fit: cover;
+        }
+
+        .verified-badge {
+            color: var(--primary);
+            font-size: 14px;
+            margin-left: 5px;
+        }
+
+        .top-balance-card {
+            text-align: center;
+            margin-top: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: var(--radius);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+
+        .top-balance-card h1 {
+            margin: 5px 0;
+            color: var(--primary);
+            font-size: 32px;
+        }
+        
+        .currency { font-size: 16px; color: #666; }
 
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 15px;
+            padding: 20px;
         }
 
         .stat-card {
             background: var(--card-bg);
-            padding: 16px;
-            border-radius: 16px;
-            text-align: center;
+            padding: 15px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: var(--shadow);
         }
 
-        .stat-value { font-size: 22px; font-weight: 800; margin-top: 4px; }
-        .stat-label { font-size: 12px; color: var(--text-gray); text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card i {
+            font-size: 20px;
+            padding: 10px;
+            background: #f0f8ff;
+            border-radius: 10px;
+        }
+        
+        .text-blue { color: var(--primary); }
+        .text-green { color: var(--success); }
+
+        .stat-info .label { font-size: 12px; color: var(--text-light); }
+        .stat-info h4 { margin: 2px 0 0 0; font-size: 16px; }
+
+        .action-card {
+            background: var(--card-bg);
+            margin: 0 20px 20px;
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border-left: 5px solid #f39c12;
+        }
+        
+        .action-card h3 { margin-top: 0; }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .btn-sm {
+            padding: 5px 15px;
+            border-radius: 8px;
+            background: #eee;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:active, .btn-success:active { transform: scale(0.98); }
+        .full-width { width: 100%; margin-top: 10px; }
+
+        .view { display: none; padding-bottom: 20px;}
+        .view.active { display: block; animation: fadeIn 0.3s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .task-list { padding: 0 20px 20px; }
+        .task-item {
+            background: white;
+            padding: 15px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow);
+        }
+        .task-details h4 { margin: 0; }
+        .task-details p { margin: 2px 0 0; font-size: 12px; color: #888; }
 
         .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
-            right: 0;
-            height: 70px;
-            background: var(--nav-bg);
-            backdrop-filter: blur(10px);
+            width: 100%;
+            background: white;
             display: flex;
             justify-content: space-around;
-            align-items: center;
-            border-top: 1px solid #222;
+            padding: 15px 0;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
             z-index: 1000;
-            padding-bottom: env(safe-area-inset-bottom);
         }
 
         .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            color: var(--text-gray);
-            font-size: 11px;
-            text-decoration: none;
-            transition: var(--transition);
+            color: #95a5a6;
+            font-size: 12px;
+            cursor: pointer;
         }
 
-        .nav-item.active { color: var(--neon-green); }
-        .nav-item svg { width: 24px; height: 24px; margin-bottom: 4px; }
+        .nav-item i { font-size: 20px; margin-bottom: 4px; }
+        .nav-item.active { color: var(--primary); }
 
-        .page { display: none; animation: fadeIn 0.4s ease; }
-        .page.active { display: block; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .ad-timer-overlay {
+        .modal {
+            display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
+            background: rgba(0,0,0,0.5);
             z-index: 2000;
-            display: none;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            text-align: center;
+        }
+
+        .modal-content {
+            background: white;
+            width: 85%;
+            border-radius: var(--radius);
+            padding: 20px;
+            position: relative;
+            box-sizing: border-box;
+        }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .modal-body ul { padding-left: 20px; }
+        .close-modal { font-size: 24px; cursor: pointer; }
+
+        .section-title { padding: 20px 20px 0; text-align: center; }
+        .ad-container { padding: 20px; }
+        .ad-card {
+            background: white;
+            padding: 15px;
+            border-radius: var(--radius);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow);
+        }
+        .ad-text h4 { margin: 0; }
+        .reward-tag { font-size: 12px; color: var(--success); font-weight: bold; }
+
+        .withdraw-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
             padding: 20px;
         }
 
-        .countdown-circle {
-            width: 150px; height: 150px;
-            border: 4px solid var(--card-bg);
-            border-top: 4px solid var(--neon-green);
-            border-radius: 50%;
+        .method-card {
+            background: white;
+            padding: 15px;
+            border-radius: var(--radius);
+            text-align: center;
+            border: 2px solid transparent;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        .method-card:hover, .method-card.selected {
+            border-color: var(--primary);
+            background: #f0f8ff;
+        }
+        
+        .method-card img { margin-bottom: 5px; }
+        .method-card h4 { margin: 5px 0; font-size: 14px; }
+        .method-card p { margin: 0; font-size: 12px; color: #888; }
+        
+        #withdraw-form { padding: 20px; background: white; margin: 20px; border-radius: var(--radius); }
+        .hidden { display: none; }
+
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .refer-box { display: flex; gap: 10px; margin: 10px 0; }
+        .refer-box input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; background: #f9f9f9; }
+        .refer-box button { background: var(--primary); color: white; border: none; border-radius: 6px; width: 40px; cursor: pointer; }
+
+        .loader-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100vh;
+            background: white;
+            z-index: 9999;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
-            font-weight: 800;
-            animation: spin 2s linear infinite;
         }
 
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        .wheel-container {
-            width: 280px;
-            height: 280px;
-            margin: 20px auto;
-            position: relative;
-            border: 8px solid var(--card-bg);
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
             border-radius: 50%;
-            overflow: hidden;
-            transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
         }
 
-        .wheel-pointer {
-            position: absolute;
-            top: -10px; left: 50%;
-            transform: translateX(-50%);
-            width: 30px; height: 30px;
-            background: var(--neon-green);
-            clip-path: polygon(50% 100%, 0 0, 100% 0);
-            z-index: 10;
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        #toast {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--neon-green);
-            color: black;
-            padding: 12px 24px;
-            border-radius: 30px;
-            font-weight: 600;
-            z-index: 3000;
-            display: none;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-        }
-
-        .history-item {
+        .admin-header { display: flex; justify-content: space-between; align-items: center; padding: 20px;}
+        .admin-stats { display: flex; gap: 10px; font-size: 12px; }
+        .a-stat { background: #eee; padding: 5px 10px; border-radius: 5px;}
+        .admin-list { padding-bottom: 80px; }
+        
+        .admin-item {
+            background: white;
+            padding: 10px;
+            margin: 10px 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #222;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
+        .btn-approve { background: var(--success); color: white; border: none; padding: 5px 10px; border-radius: 5px; margin-right: 5px; cursor: pointer;}
+        .btn-reject { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;}
+        
+        .history-list { padding: 20px; }
+        .empty-state { text-align: center; color: #888; margin-top: 50px; }
     </style>
 </head>
 <body>
 
-    <div id="toast">Reward Claimed!</div>
-
-    <header>
-        <div class="user-pill">
-            <img id="user-photo" src="https://via.placeholder.com/100" alt="Avatar">
-            <span id="user-name" style="font-weight: 600;">Loading...</span>
-        </div>
-        <div class="balance-badge" style="background: rgba(57,255,20,0.1); padding: 8px 12px; border-radius: 12px;">
-            <span class="neon-text" style="font-weight: 800;">⚡ <span id="top-balance">0</span></span>
-        </div>
-    </header>
-
-    <div id="home" class="page active container">
-        <div class="card neon-border">
-            <p class="stat-label">Total Balance</p>
-            <h1 style="font-size: 42px; margin: 5px 0;" class="neon-text">$ <span id="dash-balance">0.00</span></h1>
-            <p style="font-size: 13px; color: var(--text-gray);">≈ <span id="dash-coins">0</span> Coins</p>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <p class="stat-label">Ads Today</p>
-                <p class="stat-value" id="dash-ads">0/20</p>
-            </div>
-            <div class="stat-card">
-                <p class="stat-label">Referrals</p>
-                <p class="stat-value" id="dash-ref">0</p>
-            </div>
-        </div>
-
-        <div class="card" style="margin-top: 16px;">
-            <h3 style="margin-bottom: 12px;">Daily Bonus</h3>
-            <p style="color: var(--text-gray); font-size: 14px; margin-bottom: 15px;">Claim your 5 free coins every 24 hours.</p>
-            <button id="daily-btn" class="btn" onclick="triggerGigaPubAd('daily')">🎁 Claim Bonus</button>
-        </div>
+    <div id="loader" class="loader-container">
+        <div class="spinner"></div>
+        <p>AdEarn লোড হচ্ছে...</p>
+        <small style="color:red; margin-top:10px; display:none;" id="error-msg">ইন্টারনেট কানেকশন চেক করুন</small>
     </div>
 
-    <div id="ads" class="page container">
-        <div class="card">
-            <h2 style="margin-bottom: 10px;">GigaPub Ad Engine</h2>
-            <p style="color: var(--text-gray); font-size: 14px; margin-bottom: 20px;">Watch a short video ad to earn between 1-3 coins instantly.</p>
-            <div style="background: #000; height: 180px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; border: 1px dashed #444;">
-                <span style="color: #444;">GigaPub Ad Ready</span>
+    <div id="app" style="display: none;">
+        
+        <header>
+            <div class="profile-header">
+                <img src="https://via.placeholder.com/50" id="user-avatar" alt="Profile">
+                <div class="profile-info">
+                    <h3 id="user-name" style="margin:0;">Loading...</h3>
+                    <span id="user-id-display" style="font-size:12px; color:#666;">ID: ...</span>
+                </div>
             </div>
-            <button id="watch-btn" class="btn" onclick="triggerGigaPubAd('ad')">🎥 Watch Video Ad</button>
-        </div>
-        <div class="card">
-            <h3>Recent Earnings</h3>
-            <div id="ad-history">
-                <p style="color: #444; text-align: center; padding: 20px;">No ads watched yet</p>
+            <div class="top-balance-card">
+                <p style="margin:0; color:#888;">আপনার ব্যালেন্স</p>
+                <h1 id="main-balance">0.00 <span class="currency">HMSTR 🐹</span></h1>
+            </div>
+        </header>
+
+        <div id="notice-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 style="margin:0;">📢 নোটিস</h3>
+                    <span class="close-modal" onclick="closeNotice()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p style="font-weight:bold;">স্বাগতম! 🔥</p>
+                    <p>আসসালামু আলাইকুম, সততার সাথে পেমেন্ট করছি। নিয়ম মেনে কাজ করলে ১০০% পেমেন্ট পাবেন ইনশাআল্লাহ 🔥</p>
+                    <ul>
+                        <li>⚡ কোনো বোনাস কমিশন নেই</li>
+                        <li>🐯 একটি রেফার ১ HMSTR</li>
+                        <li>💰 প্রতি বিজ্ঞাপনে: ০.৫০ HMSTR</li>
+                    </ul>
+                    <button class="btn-primary full-width" onclick="closeNotice()">বুঝেছি</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div id="spin" class="page container" style="text-align: center;">
-        <h2>Lucky Spin</h2>
-        <div class="wheel-pointer"></div>
-        <div id="wheel" class="wheel-container">
-            <img src="https://i.imgur.com/8X8H5vA.png" style="width: 100%; height: 100%;" alt="Wheel">
-        </div>
-        <button id="spin-btn" class="btn" onclick="triggerGigaPubAd('spin')" style="margin-top: 20px;">🎡 Spin Now (<span id="spin-count">3</span> left)</button>
-    </div>
+        <div id="content-area">
 
-    <div id="withdraw" class="page container">
-        <div class="card">
-            <p class="stat-label">Available for Withdrawal</p>
-            <h2 class="neon-text" style="font-size: 28px;">$ <span id="wd-balance">0.00</span></h2>
-        </div>
-        <div class="card">
-            <select id="wd-method" style="width: 100%; background: #222; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-                <option value="bkash">bKash</option>
-                <option value="nagad">Nagad</option>
-                <option value="rocket">Rocket</option>
-            </select>
-            <input type="text" id="wd-account" placeholder="Enter account number" style="width: 100%; background: #222; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-            <input type="number" id="wd-amount" placeholder="Minimum 300" style="width: 100%; background: #222; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px; margin-bottom: 20px;">
-            <button class="btn" onclick="triggerGigaPubAd('withdraw')">Withdraw Funds</button>
-        </div>
-    </div>
+            <div id="view-home" class="view active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-ad text-blue"></i>
+                        <div class="stat-info">
+                            <span class="label">দৈনিক বিজ্ঞাপন</span>
+                            <h4 id="ads-watched-count">0/100</h4>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-users text-green"></i>
+                        <div class="stat-info">
+                            <span class="label">মোট রেফার</span>
+                            <h4 id="refer-count">0</h4>
+                        </div>
+                    </div>
+                </div>
 
-    <div id="profile" class="page container">
-        <div class="card" style="text-align: center;">
-            <img id="prof-photo" src="" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--neon-green); margin-bottom: 10px;">
-            <h2 id="prof-name">Username</h2>
-            <p style="color: var(--text-gray); font-size: 14px;">ID: <span id="prof-id">0000000</span></p>
-        </div>
-        <div class="card">
-            <input type="text" id="ref-link" readonly style="width: 100%; background: #000; border: 1px solid #333; color: var(--neon-green); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-            <button class="btn" onclick="copyRef()">Copy Referral Link</button>
-        </div>
-    </div>
+                <div class="action-card">
+                    <h3>🎁 বন্ডকে রেফার করুন এবং ইনকাম করুন</h3>
+                    <p>আপনার রেফার লিংকটি শেয়ার করুন এবং আপনার বন্ধুদের আমন্ত্রণ জানান। ১.০০ HMSTR বোনাস পাবেন। 👋</p>
+                    <div class="refer-box">
+                        <input type="text" id="refer-link" readonly value="Loading...">
+                        <button onclick="copyReferral()"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <button class="btn-success full-width" onclick="shareReferral()">🔗 শেয়ার করুন</button>
+                </div>
 
-    <div id="ad-overlay" class="ad-timer-overlay">
-        <h2 style="margin-bottom: 20px;">Watching Ad...</h2>
-        <div class="countdown-circle"><span id="ad-sec">15</span></div>
-        <p style="margin-top: 20px; color: var(--text-gray);">Ad ses na howa porjonto skip hobe na!</p>
-    </div>
+                <div class="task-list">
+                    <h3>🛡️ হিউম্যান ভেরিফিকেশন</h3>
+                    <div class="task-item" id="verify-task">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div class="task-icon"><i class="fas fa-shield-alt text-blue" style="font-size:24px;"></i></div>
+                            <div class="task-details">
+                                <h4>Verify Human</h4>
+                                <p>পুরস্কার: Badge 🛡️</p>
+                            </div>
+                        </div>
+                        <button class="btn-sm" id="btn-verify" onclick="verifyHuman()">Verify</button>
+                    </div>
+                </div>
+            </div>
 
-    <nav class="bottom-nav">
-        <a href="#" class="nav-item active" onclick="showPage('home', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a>
-        <a href="#" class="nav-item" onclick="showPage('ads', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><path d="M17 2l-5 5-5-5"></path></svg>Ads</a>
-        <a href="#" class="nav-item" onclick="showPage('spin', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>Spin</a>
-        <a href="#" class="nav-item" onclick="showPage('withdraw', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>Wallet</a>
-        <a href="#" class="nav-item" onclick="showPage('profile', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Profile</a>
-    </nav>
+            <div id="view-earn" class="view">
+                <div class="section-title">
+                    <h2>🎥 বিজ্ঞাপন দেখুন</h2>
+                    <p style="color:#666;">প্রতি বিজ্ঞাপন দেখলে ০.৫০ HMSTR আয় করুন</p>
+                </div>
+
+                <div class="ad-container">
+                    <div class="ad-card">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div class="ad-icon"><i class="fas fa-play-circle text-blue" style="font-size:24px;"></i></div>
+                            <div class="ad-text">
+                                <h4>Watch Ad #1</h4>
+                                <span class="reward-tag">💵 0.50 HMSTR</span>
+                            </div>
+                        </div>
+                        <button class="btn-primary" onclick="watchAd()">দেখুন</button>
+                    </div>
+                     <div class="ad-card">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div class="ad-icon"><i class="fas fa-star text-green" style="font-size:24px;"></i></div>
+                            <div class="ad-text">
+                                <h4>Special Offer</h4>
+                                <span class="reward-tag">💵 2.00 HMSTR</span>
+                            </div>
+                        </div>
+                        <button class="btn-primary" onclick="watchAd()">দেখুন</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-withdraw" class="view">
+                <div class="section-title">
+                    <h2>🏦 টাকা উত্তোলন</h2>
+                    <p style="color:#666;">ন্যূনতম ১০,০০০ HMSTR</p>
+                </div>
+                <div class="withdraw-methods">
+                    <div class="method-card" onclick="selectMethod('Mobile Recharge', 80, 10000)">
+                        <i class="fas fa-mobile-alt text-blue" style="font-size:24px; margin-bottom:5px; display:block;"></i>
+                        <h4>Mobile Recharge</h4>
+                        <p>80 Taka</p>
+                    </div>
+                    <div class="method-card" onclick="selectMethod('Bkash', 530, 66250)">
+                        <img src="https://freelogopng.com/images/all_img/1656234745bkash-app-logo-png.png" alt="Bkash" style="width:25px;">
+                        <h4>Bkash</h4>
+                        <p>530 Taka</p>
+                    </div>
+                    <div class="method-card" onclick="selectMethod('Nagad', 530, 66250)">
+                        <img src="https://freelogopng.com/images/all_img/1679248787nagad-logo.png" alt="Nagad" style="width:30px;">
+                        <h4>Nagad</h4>
+                        <p>530 Taka</p>
+                    </div>
+                    <div class="method-card" onclick="selectMethod('USDT', 5, 50000)">
+                        <i class="fas fa-wallet text-green" style="font-size:24px; margin-bottom:5px; display:block;"></i>
+                        <h4>USDT BEP20</h4>
+                        <p>$5</p>
+                    </div>
+                </div>
+                <div id="withdraw-form" class="hidden">
+                    <hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
+                    <h4 id="selected-method-name" style="margin-top:0;">Method Selected</h4>
+                    <div class="input-group">
+                        <label>অ্যাকাউন্ট নম্বর / ওয়ালেট</label>
+                        <input type="text" id="withdraw-account" placeholder="Number/Address">
+                    </div>
+                    <div class="input-group">
+                        <label>পরিমাণ (HMSTR)</label>
+                        <input type="number" id="withdraw-amount" placeholder="Amount">
+                    </div>
+                    <button class="btn-primary full-width" onclick="submitWithdraw()">➡️ রিকোয়েস্ট জমা দিন</button>
+                </div>
+            </div>
+
+            <div id="view-history" class="view">
+                <div class="section-title">
+                    <h2>🕒 উইথড্র হিস্টোরি</h2>
+                </div>
+                <div id="history-list" class="history-list">
+                    <div class="empty-state">আপনার কোনো হিস্টোরি নেই</div>
+                </div>
+            </div>
+
+            <div id="view-admin" class="view">
+                <div class="admin-header">
+                    <h2 style="margin:0;">Admin Panel</h2>
+                    <div class="admin-stats">
+                        <div class="a-stat">Users: <span id="adm-users">0</span></div>
+                        <div class="a-stat">Pending: <span id="adm-pending">0</span></div>
+                    </div>
+                </div>
+                <h3 style="padding:0 20px;">Withdraw Requests</h3>
+                <div id="admin-withdraw-list" class="admin-list"></div>
+            </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <div class="nav-item active" onclick="switchTab('home')">
+                <i class="fas fa-home"></i>
+                <span>হোম</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('earn')">
+                <i class="fas fa-coins"></i>
+                <span>আর্ন</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('withdraw')">
+                <i class="fas fa-wallet"></i>
+                <span>উত্তোলন</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('history')">
+                <i class="fas fa-history"></i>
+                <span>হিস্টোরি</span>
+            </div>
+        </nav>
+    </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.enableClosingConfirmation();
-
-        // --- FIREBASE CONFIG ---
+        // CONFIGURATION
         const firebaseConfig = {
-            apiKey: "AIzaSyCppnCPW_npU7QS8tmkX4MGzBtYx35I6G4",
-            authDomain: "adearn-79f8b.firebaseapp.com",
-            databaseURL: "https://adearn-79f8b-default-rtdb.firebaseio.com",
-            projectId: "adearn-79f8b",
-            storageBucket: "adearn-79f8b.firebasestorage.app",
-            messagingSenderId: "136478270159",
-            appId: "1:136478270159:web:24484fc7b56f81ad2f0dba"
+          apiKey: "AIzaSyCppnCPW_npU7QS8tmkX4MGzBtYx35I6G4",
+          authDomain: "adearn-79f8b.firebaseapp.com",
+          databaseURL: "https://adearn-79f8b-default-rtdb.firebaseio.com",
+          projectId: "adearn-79f8b",
+          storageBucket: "adearn-79f8b.firebasestorage.app",
+          messagingSenderId: "136478270159",
+          appId: "1:136478270159:web:24484fc7b56f81ad2f0dba",
+          measurementId: "G-JJJ3TN25F4"
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        // Initialize Firebase
+        try {
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.firestore();
+            const tg = window.Telegram.WebApp;
 
-        let userData = { coins: 0, adsToday: 0, spinsToday: 3, lastBonus: 0, referrals: 0, history: [] };
-        let currentUserId = '';
-        let pendingAction = null;
+            // STATE
+            let currentUser = null;
+            let userData = {};
+            let selectedWithdrawMethod = null;
+            let minWithdrawAmount = 10000;
+            const ADMIN_IDS = [123456789, 987654321]; 
 
-        const GIGAPUB_LINK = "https://link.gigapub.tech/l/9pp3y1rr";
+            // INITIALIZATION
+            document.addEventListener("DOMContentLoaded", async () => {
+                tg.ready();
+                tg.expand();
 
-        function init() {
-            const user = tg.initDataUnsafe?.user || { id: '696969', first_name: 'Demo User' };
-            currentUserId = user.id;
-            document.getElementById('user-name').innerText = user.first_name;
-            document.getElementById('prof-name').innerText = user.first_name;
-            document.getElementById('prof-id').innerText = user.id;
-            document.getElementById('ref-link').value = `https://t.me/AdEarnBot?start=${user.id}`;
-            
-            database.ref('users/' + currentUserId).once('value').then((snapshot) => {
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    userData = {
-                        coins: data.coins || 0,
-                        adsToday: data.adsToday || 0,
-                        spinsToday: data.spinsToday ?? 3,
-                        lastBonus: data.lastBonus || 0,
-                        referrals: data.referrals || 0,
-                        history: data.history || []
-                    };
-                } else {
-                    database.ref('users/' + currentUserId).set(userData);
+                let user = tg.initDataUnsafe.user;
+                if (!user) {
+                    user = { id: 999999, first_name: "Test", last_name: "User", username: "testuser" };
+                    console.warn("Test Mode Active");
                 }
-                updateUI();
-            }).catch(() => updateUI());
-        }
 
-        // --- GIGAPUB AD TRIGGER ---
-        function triggerGigaPubAd(actionType) {
-            // Validation check
-            if (actionType === 'ad' && userData.adsToday >= 20) { showToast("Limit reached!"); return; }
-            if (actionType === 'spin' && userData.spinsToday <= 0) { showToast("No spins left!"); return; }
-            if (actionType === 'daily' && (Date.now() - userData.lastBonus < 86400000)) { showToast("Come back later"); return; }
-            if (actionType === 'withdraw') {
-                const amount = document.getElementById('wd-amount').value;
-                if (amount < 300 || userData.coins < amount) { showToast("Invalid amount"); return; }
+                currentUser = user;
+                initUser(user);
+            });
+
+            // USER LOGIC
+            function initUser(user) {
+                const userRef = db.collection('users').doc(user.id.toString());
+                
+                userRef.get().then((docSnapshot) => {
+                    const startParam = tg.initDataUnsafe.start_param;
+                    let referrerId = null;
+                    if (startParam && startParam != user.id) {
+                        referrerId = startParam;
+                    }
+
+                    if (!docSnapshot.exists) {
+                        // Create User
+                        userRef.set({
+                            id: user.id,
+                            username: user.username || "User",
+                            firstName: user.first_name,
+                            balance: 0.00,
+                            adsWatched: 0,
+                            referrals: 0,
+                            verified: false,
+                            referrer: referrerId,
+                            joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }).then(() => {
+                            if (referrerId) {
+                                const refUserRef = db.collection('users').doc(referrerId.toString());
+                                refUserRef.update({
+                                    balance: firebase.firestore.FieldValue.increment(1.00),
+                                    referrals: firebase.firestore.FieldValue.increment(1)
+                                }).catch(e => console.log(e));
+                            }
+                        });
+                    }
+                });
+
+                // Realtime Listener
+                userRef.onSnapshot((doc) => {
+                    if(doc.exists) {
+                        userData = doc.data();
+                        updateUI();
+                        document.getElementById('loader').style.display = 'none';
+                        document.getElementById('app').style.display = 'block';
+                        
+                        if(!sessionStorage.getItem('noticeShown')) {
+                            document.getElementById('notice-modal').style.display = 'flex';
+                            sessionStorage.setItem('noticeShown', 'true');
+                        }
+                    }
+                }, (error) => {
+                    console.error("Firestore Error:", error);
+                    document.getElementById('error-msg').style.display = 'block';
+                    document.getElementById('error-msg').innerText = "Error: " + error.message;
+                });
+
+                if (ADMIN_IDS.includes(user.id)) {
+                    initAdminPanel();
+                }
             }
 
-            pendingAction = actionType;
-            
-            // Ad link opens in new tab
-            window.open(GIGAPUB_LINK, '_blank');
+            // UI UPDATES
+            function updateUI() {
+                document.getElementById('user-name').innerHTML = `${userData.firstName} ${userData.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}`;
+                document.getElementById('user-id-display').innerText = `ID: ${userData.id}`;
+                document.getElementById('user-avatar').src = currentUser.photo_url || "https://via.placeholder.com/50";
+                
+                document.getElementById('main-balance').innerHTML = `${userData.balance.toFixed(2)} <span class="currency">HMSTR 🐹</span>`;
+                document.getElementById('ads-watched-count').innerText = `${userData.adsWatched}/100`;
+                document.getElementById('refer-count').innerText = userData.referrals;
+                
+                const link = `https://t.me/AdEarnBot?start=${userData.id}`;
+                document.getElementById('refer-link').value = link;
 
-            // Internal timer starts (User cannot bypass)
-            const overlay = document.getElementById('ad-overlay');
-            const timerTxt = document.getElementById('ad-sec');
-            overlay.style.display = 'flex';
-            let timeLeft = 15;
-            timerTxt.innerText = timeLeft;
-
-            const interval = setInterval(() => {
-                timeLeft--;
-                timerTxt.innerText = timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(interval);
-                    overlay.style.display = 'none';
-                    executeReward();
+                if(userData.verified) {
+                    const btn = document.getElementById('btn-verify');
+                    btn.innerText = "Verified";
+                    btn.classList.replace('btn-sm', 'btn-success');
+                    btn.disabled = true;
                 }
-            }, 1000);
-        }
-
-        function executeReward() {
-            if (pendingAction === 'ad') completeAd();
-            else if (pendingAction === 'daily') claimDaily();
-            else if (pendingAction === 'spin') spinWheel();
-            else if (pendingAction === 'withdraw') submitWithdraw();
-            pendingAction = null;
-        }
-
-        function updateUI() {
-            document.getElementById('top-balance').innerText = userData.coins || 0;
-            document.getElementById('dash-balance').innerText = ((userData.coins || 0) * 0.01).toFixed(2);
-            document.getElementById('dash-coins').innerText = userData.coins || 0;
-            document.getElementById('wd-balance').innerText = ((userData.coins || 0) * 0.01).toFixed(2);
-            document.getElementById('dash-ads').innerText = `${userData.adsToday || 0}/20`;
-            document.getElementById('dash-ref').innerText = userData.referrals || 0;
-            document.getElementById('spin-count').innerText = userData.spinsToday ?? 3;
-
-            const histDiv = document.getElementById('ad-history');
-            if (userData.history && userData.history.length > 0) {
-                histDiv.innerHTML = userData.history.map(item => `
-                    <div class="history-item">
-                        <div><div>${item.type}</div><div style="font-size:10px;color:#666;">${item.date}</div></div>
-                        <div class="neon-text">${item.amount.toString().startsWith('-') ? '' : '+'}${item.amount}</div>
-                    </div>`).join('');
             }
-            if(currentUserId) database.ref('users/' + currentUserId).set(userData);
-        }
 
-        function completeAd() {
-            const reward = Math.floor(Math.random() * 3) + 1;
-            userData.coins += reward;
-            userData.adsToday += 1;
-            if(!userData.history) userData.history = [];
-            userData.history.unshift({ type: 'Ad Reward', amount: reward, date: new Date().toLocaleTimeString() });
-            updateUI();
-            showToast(`Earned +${reward} Coins!`);
-        }
+            // FUNCTIONS
+            window.switchTab = (tabName) => {
+                document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                document.getElementById(`view-${tabName}`).classList.add('active');
+                
+                const tabs = ['home', 'earn', 'withdraw', 'history', 'profile'];
+                const index = tabs.indexOf(tabName);
+                if(index > -1 && index < 4) {
+                    document.querySelectorAll('.nav-item')[index].classList.add('active');
+                }
+                
+                if (tabName === 'history') loadHistory();
+                if(tabName === 'profile' && ADMIN_IDS.includes(currentUser.id)) {
+                    document.getElementById('view-admin').classList.add('active');
+                }
+            };
 
-        function claimDaily() {
-            userData.coins += 5;
-            userData.lastBonus = Date.now();
-            if(!userData.history) userData.history = [];
-            userData.history.unshift({ type: 'Daily Bonus', amount: 5, date: new Date().toLocaleDateString() });
-            updateUI();
-            showToast("Claimed +5 Coins!");
-        }
+            window.closeNotice = () => {
+                document.getElementById('notice-modal').style.display = 'none';
+            };
 
-        function spinWheel() {
-            userData.spinsToday -= 1;
-            const wheel = document.getElementById('wheel');
-            const randomDeg = Math.floor(Math.random() * 360) + 1440;
-            wheel.style.transform = `rotate(${randomDeg}deg)`;
-            setTimeout(() => {
-                userData.coins += 2;
-                updateUI();
-                showToast("Won 2 Coins!");
-            }, 4000);
-        }
+            window.watchAd = () => {
+                if (userData.adsWatched >= 100) {
+                    tg.showAlert("আজকের লিমিট শেষ! আগামীকাল আবার চেষ্টা করুন।");
+                    return;
+                }
+                tg.showConfirm("বিজ্ঞাপনটি ১৫ সেকেন্ড দেখুন...", (ok) => {
+                    if(ok) {
+                        const btn = event.target;
+                        const originalText = btn.innerText;
+                        btn.innerText = "Wait 5s...";
+                        btn.disabled = true;
 
-        function submitWithdraw() {
-            const amount = parseInt(document.getElementById('wd-amount').value);
-            const method = document.getElementById('wd-method').value;
-            const account = document.getElementById('wd-account').value;
-            if(!account) { showToast("Enter account number"); return; }
-            userData.coins -= amount;
-            if(!userData.history) userData.history = [];
-            userData.history.unshift({ type: `Withdrawal (${method})`, amount: `-${amount}`, date: new Date().toLocaleDateString() });
-            updateUI();
-            showToast("Withdrawal Pending!");
-        }
+                        setTimeout(() => {
+                            const userRef = db.collection('users').doc(currentUser.id.toString());
+                            userRef.update({
+                                balance: firebase.firestore.FieldValue.increment(0.50),
+                                adsWatched: firebase.firestore.FieldValue.increment(1)
+                            });
+                            btn.innerText = "Reward Added!";
+                            setTimeout(() => {
+                                btn.innerText = originalText;
+                                btn.disabled = false;
+                            }, 1000);
+                            tg.HapticFeedback.notificationOccurred('success');
+                        }, 5000);
+                    }
+                });
+            };
 
-        function showPage(pageId, el) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            el.classList.add('active');
-            tg.HapticFeedback.impactOccurred('light');
-        }
+            window.verifyHuman = () => {
+                tg.showPopup({
+                    title: "Verify Human",
+                    message: "Click OK to prove you are not a robot.",
+                    buttons: [{type: "ok"}]
+                }, () => {
+                    db.collection('users').doc(currentUser.id.toString()).update({ verified: true });
+                    tg.showAlert("অভিনন্দন! আপনি ভেরিফাইড ইউজার।");
+                });
+            };
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.innerText = msg; t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 3000);
-        }
+            window.copyReferral = () => {
+                const copyText = document.getElementById("refer-link");
+                copyText.select();
+                document.execCommand("copy");
+                tg.showAlert("রেফার লিংক কপি করা হয়েছে!");
+            };
 
-        function copyRef() {
-            const link = document.getElementById('ref-link');
-            link.select(); document.execCommand('copy'); showToast("Copied!");
-        }
+            window.shareReferral = () => {
+                const link = document.getElementById("refer-link").value;
+                const url = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("Join AdEarn and earn HMSTR! 🐹")}`;
+                tg.openTelegramLink(url);
+            };
 
-        window.onload = init;
+            window.selectMethod = (method, minTaka, minHmstr) => {
+                selectedWithdrawMethod = method;
+                minWithdrawAmount = minHmstr;
+                document.querySelectorAll('.method-card').forEach(el => el.classList.remove('selected'));
+                event.currentTarget.classList.add('selected');
+                document.getElementById('withdraw-form').classList.remove('hidden');
+                document.getElementById('selected-method-name').innerText = `${method} (Min: ${minHmstr} HMSTR)`;
+                document.getElementById('withdraw-amount').placeholder = `Min ${minHmstr}`;
+            };
+
+            window.submitWithdraw = () => {
+                const amount = parseFloat(document.getElementById('withdraw-amount').value);
+                const account = document.getElementById('withdraw-account').value;
+
+                if (!selectedWithdrawMethod || !amount || !account) {
+                    tg.showAlert("সব তথ্য পূরণ করুন"); return;
+                }
+                if (amount < minWithdrawAmount) {
+                    tg.showAlert(`সর্বনিম্ন উত্তোলন ${minWithdrawAmount} HMSTR`); return;
+                }
+                if (amount > userData.balance) {
+                    tg.showAlert("অপর্যাপ্ত ব্যালেন্স!"); return;
+                }
+
+                db.collection("withdrawals").add({
+                    userId: currentUser.id,
+                    username: userData.username,
+                    method: selectedWithdrawMethod,
+                    account: account,
+                    amount: amount,
+                    status: "pending",
+                    date: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    db.collection('users').doc(currentUser.id.toString()).update({ 
+                        balance: firebase.firestore.FieldValue.increment(-amount) 
+                    });
+                    tg.showAlert("উত্তোলন রিকোয়েস্ট জমা হয়েছে! ✅");
+                    document.getElementById('withdraw-form').classList.add('hidden');
+                    switchTab('history');
+                }).catch(e => tg.showAlert("ত্রুটি হয়েছে।"));
+            };
+
+            function loadHistory() {
+                const listDiv = document.getElementById('history-list');
+                listDiv.innerHTML = '<div class="spinner"></div>';
+                
+                db.collection("withdrawals").where("userId", "==", currentUser.id).get().then((querySnapshot) => {
+                    if(querySnapshot.empty) {
+                        listDiv.innerHTML = '<div class="empty-state">আপনার কোনো হিস্টোরি নেই</div>';
+                        return;
+                    }
+                    let html = '';
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        let color = data.status === 'approved' ? 'green' : (data.status === 'rejected' ? 'red' : 'orange');
+                        let icon = data.status === 'approved' ? 'check-circle' : 'clock';
+                        html += `
+                        <div class="stat-card" style="margin-bottom: 10px; justify-content: space-between;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <i class="fas fa-${icon}" style="color:${color}"></i>
+                                <div>
+                                    <h4>${data.method}</h4>
+                                    <span style="font-size:12px; color:#888;">${data.amount} HMSTR</span>
+                                </div>
+                            </div>
+                            <span style="color:${color}; font-weight:bold; font-size:12px; text-transform:uppercase;">${data.status}</span>
+                        </div>`;
+                    });
+                    listDiv.innerHTML = html;
+                });
+            }
+
+            // ADMIN
+            function initAdminPanel() {
+                const nav = document.querySelector('.bottom-nav');
+                const adminBtn = document.createElement('div');
+                adminBtn.className = 'nav-item';
+                adminBtn.innerHTML = '<i class="fas fa-user-shield"></i><span>Admin</span>';
+                adminBtn.onclick = () => {
+                    document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+                    document.getElementById('view-admin').classList.add('active');
+                    loadAdminData();
+                };
+                nav.appendChild(adminBtn);
+            }
+
+            function loadAdminData() {
+                db.collection("users").get().then(snap => {
+                    document.getElementById('adm-users').innerText = snap.size;
+                });
+
+                db.collection("withdrawals").where("status", "==", "pending").get().then(snapshot => {
+                    document.getElementById('adm-pending').innerText = snapshot.size;
+                    const list = document.getElementById('admin-withdraw-list');
+                    list.innerHTML = '';
+                    
+                    snapshot.forEach(docSnap => {
+                        const d = docSnap.data();
+                        const item = document.createElement('div');
+                        item.className = 'admin-item';
+                        item.innerHTML = `
+                            <div>
+                                <strong>${d.username}</strong><br>
+                                <small>${d.method}: ${d.account}</small><br>
+                                <b>${d.amount} HMSTR</b>
+                            </div>
+                            <div>
+                                <button class="btn-approve" onclick="processWithdraw('${docSnap.id}', 'approved')">✔</button>
+                                <button class="btn-reject" onclick="processWithdraw('${docSnap.id}', 'rejected', ${d.amount}, ${d.userId})">✖</button>
+                            </div>
+                        `;
+                        list.appendChild(item);
+                    });
+                });
+            }
+
+            window.processWithdraw = (docId, status, amount = 0, userId = 0) => {
+                if(!confirm(`Mark as ${status}?`)) return;
+                db.collection("withdrawals").doc(docId).update({ status: status }).then(() => {
+                    if (status === 'rejected') {
+                        db.collection("users").doc(userId.toString()).update({ balance: firebase.firestore.FieldValue.increment(amount) });
+                    }
+                    loadAdminData();
+                });
+            };
+
+        } catch (e) {
+            alert("Firebase Init Error: " + e.message);
+        }
     </script>
 </body>
 </html>
